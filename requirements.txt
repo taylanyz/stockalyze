@@ -1,0 +1,9 @@
+yfinance>=1.7.0
+rich>=13.0.0
+pandas>=2.0.0
+streamlit>=1.30.0
+plotly>=6.0.0
+evds>=1.0
+
+# geliştirme
+pytest>=8.0.0

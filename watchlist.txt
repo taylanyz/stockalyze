@@ -1,0 +1,12 @@
+# Gün sonu değerlendirmesinde izlenecek hisseler.
+# Satır başına bir sembol. BIST için .IS uzantısı.
+
+AAPL
+MSFT
+NVDA
+THYAO.IS
+ASELS.IS
+PATH
+EKSUN.IS
+JANTS.IS
+HDFGS.IS

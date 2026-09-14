@@ -1,0 +1,10 @@
+# Streamlit görünüm ayarı — özel CSS yok, hazır tema.
+[theme]
+base = "dark"
+primaryColor = "#4c8bf5"
+
+[server]
+headless = true
+
+[browser]
+gatherUsageStats = false
