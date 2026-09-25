@@ -21,7 +21,7 @@ from src.ui.common import (
 from src.ui.detail import render_detail_panel
 
 page_header(
-    "Tarama", "🔍",
+    "Tarama", "🧮",
     "Belirlediğin kriterlere (F/K, ROE, trend, puan...) uyan hisseleri evrenden "
     "süzüp puana göre sıralar.",
 )

@@ -102,6 +102,16 @@ TERMS: list[Term] = [
         "Sadece ‘önce hangisine bakayım’ elemesi içindir. Yüksek puan "
         "‘al’ demek DEĞİLDİR — sonrası kendi araştırman.",
     ),
+    Term(
+        "İlgi", "İlgi puanı (0–100, Radar)",
+        "Hissenin şu an ne kadar ‘hareketli’ olduğunu ölçer: hacmin 20 günlük "
+        "ortalamanın kaç katı olduğu + günlük ve haftalık fiyat hareketinin "
+        "büyüklüğü (yön fark etmez — sert düşüş de sert yükseliş kadar ilgi puanı verir).",
+        "Puan ile karıştırılmamalı: İlgi ‘şirket iyi mi’ demez, ‘şu an bu hisseye "
+        "çok işlem/hareket var mı’ der. Yüksek ilgi + düşük puan genelde "
+        "spekülatif/haber kaynaklı harekettir; yüksek ilgi + sert düşüş ise "
+        "panik satışı olabilir — ikisi de temkinli yaklaşım gerektirir.",
+    ),
 ]
 
 TERMS_BY_KEY = {t.key: t for t in TERMS}

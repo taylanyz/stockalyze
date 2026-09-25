@@ -1,7 +1,14 @@
-# Streamlit görünüm ayarı — özel CSS yok, hazır tema.
+# Streamlit görünüm ayarı — özel CSS yok, Streamlit'in hazır theming
+# seçenekleri (config.toml) kullanılıyor. Açık, sade, okunaklı tema
+# (stockanalysis.com tarzı: beyaz zemin, koyu yazı, mavi vurgu).
 [theme]
-base = "dark"
-primaryColor = "#4c8bf5"
+base = "light"
+primaryColor = "#2563eb"
+backgroundColor = "#ffffff"
+secondaryBackgroundColor = "#f5f7fa"
+textColor = "#1a1a2e"
+font = "sans serif"
+baseFontSize = 16
 
 [server]
 headless = true

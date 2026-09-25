@@ -291,8 +291,10 @@ def render_statements(symbol: str) -> None:
 
     console.print(table)
     console.print(f"[dim]Kaynak: {h.source}. Ara dönem (X ay) kümülatiftir.[/dim]")
-    for line in summarize(h):
-        console.print(f"  • {line}")
+    _TAG_STYLE = {"olumlu": "green", "temkinli": "yellow", "riskli": "red", "notr": "dim"}
+    for text, tag in summarize(h):
+        style = _TAG_STYLE.get(tag, "")
+        console.print(f"  • [{style}]{text}[/{style}]" if style else f"  • {text}")
 
 
 def render_risk(symbol: str, market: Market, provider) -> None:

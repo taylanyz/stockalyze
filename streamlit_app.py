@@ -1,95 +1,45 @@
 """
-Hisse Analiz — web arayüzü giriş noktası (Ana Sayfa).
+Hisse Analiz — web arayüzü giriş noktası.
 
 Çalıştırma:
     streamlit run streamlit_app.py
 
+Sayfa listesi + grup başlıkları burada tanımlanır (st.navigation).
+Her sayfanın kendi içeriği pages/ altında; Ana Sayfa src/ui/home.py'de
+fonksiyon olarak tutuluyor (giriş dosyası + sayfa aynı anda olamayacağı için).
 Bu dosya ve pages/ altındakiler SADECE sunum. Tüm hesaplama
 src/analysis, src/evaluator, src/providers içinde — CLI ile ortak.
 """
 
 from __future__ import annotations
 
-import pandas as pd
 import streamlit as st
 
-from src.config import load_bist_universe
-from src.providers.screener import Mover
-from src.ui.common import (
-    fmt_count,
-    fmt_num,
-    fmt_pct,
-    market_news,
-    page_header,
-    render_news,
-    trending,
-)
+from src.ui.home import render_home
 
-page_header(
-    "Ana Sayfa — Piyasada Ne Hareketleniyor", "🏠",
-    "Bugün piyasada en çok yükselen, düşen ve işlem gören hisseleri gösterir "
-    "(watchlist'ten bağımsız — genel piyasa görünümü).",
-)
-
-universe = load_bist_universe()
-
-col1, col2 = st.columns([3, 1])
-with col2:
-    count = st.slider("Liste uzunluğu", 5, 25, 12)
-    if st.button("🔄 Yenile"):
-        st.cache_data.clear()
-        st.rerun()
-
-with st.spinner("Piyasa taranıyor..."):
-    report = trending(tuple(universe), count=count)
-
-
-def movers_df(movers: list[Mover]) -> pd.DataFrame:
-    return pd.DataFrame([
-        {
-            "Sembol": m.symbol,
-            "Şirket": m.name,
-            "Fiyat": f"{fmt_num(m.price)} {m.currency or ''}".strip(),
-            "Gün %": fmt_pct(m.day_change_pct),
-            "Hacim": fmt_count(m.volume),
-        }
-        for m in movers
-    ])
-
-
-def section(title: str, groups: dict[str, list[Mover]]) -> None:
-    st.subheader(title)
-    c1, c2, c3 = st.columns(3)
-    for col, key, label in (
-        (c1, "gainers", "📈 En çok yükselenler"),
-        (c2, "losers", "📉 En çok düşenler"),
-        (c3, "actives", "🔊 En çok işlem görenler"),
-    ):
-        with col:
-            st.markdown(f"**{label}**")
-            rows = groups.get(key) or []
-            if rows:
-                st.dataframe(movers_df(rows), hide_index=True, use_container_width=True)
-            else:
-                st.caption("Veri yok")
-
-
-section("ABD (NYSE / NASDAQ)  ·  fiyatlar USD", report.us)
-st.divider()
-section(f"BIST ({len(universe)} hisselik evren)  ·  fiyatlar TRY", report.bist)
-
-st.divider()
-st.subheader("📰 Piyasa Haberleri")
-st.caption(
-    "Türkçe finans kaynaklarından (Investing TR, Dünya, Bloomberg HT) son başlıklar. "
-    "Sadece bilgilendirme — puanlamayı etkilemez, içerik analiz edilmez."
-)
-with st.spinner("Haberler alınıyor..."):
-    news = market_news(16)
-render_news(news, "Haber alınamadı (kaynaklara ulaşılamadı).", columns=2)
-
-st.divider()
-st.info(
-    "Bir hisseye yakından bakmak için soldaki **Hisse Detay** sayfasını kullan. "
-    "Terimlerin anlamı için **Terimler** sayfasına bak."
-)
+pg = st.navigation({
+    "Genel Bakış": [
+        st.Page(render_home, title="Ana Sayfa", icon="🏠", default=True),
+    ],
+    "🧭 Analiz": [
+        st.Page("pages/1_Hisse_Detay.py", title="Hisse Detay", icon="🔍"),
+        st.Page("pages/2_Karşılaştır.py", title="Karşılaştır", icon="⚖️"),
+        st.Page("pages/6_Radar.py", title="Radar", icon="📡"),
+        st.Page("pages/8_Tarama.py", title="Tarama", icon="🧮"),
+    ],
+    "💼 Takip & Portföy": [
+        st.Page("pages/3_Watchlist.py", title="Watchlist", icon="⭐"),
+        st.Page("pages/9_Portföy.py", title="Portföy", icon="💼"),
+        st.Page("pages/12_Uyarılar.py", title="Uyarılar", icon="🔔"),
+        st.Page("pages/4_Gün_Sonu.py", title="Gün Sonu", icon="🌇"),
+        st.Page("pages/7_Snapshot_Değişim.py", title="Snapshot & Değişim", icon="🗓️"),
+    ],
+    "🌍 Piyasa": [
+        st.Page("pages/10_Makro_Panel.py", title="Makro Panel", icon="🌍"),
+        st.Page("pages/11_Takvim.py", title="Takvim", icon="📅"),
+    ],
+    "📖 Yardım": [
+        st.Page("pages/5_Terimler.py", title="Terimler", icon="📖"),
+    ],
+})
+pg.run()

@@ -1,8 +1,8 @@
 """
-Radar — skoru iyi + ilgi gören hisseler + trend/konumlanma notu.
+Radar — en aktif/ilgi gören hisseler + puan + trend/konumlanma notu.
 
 - BIST ve ABD ayrı bölümler (ilgi puanları kendi piyasası içinde kıyaslanır).
-- Her piyasada iki liste: 'skoru iyi + ilgi gören' ve 'sadece ilgi gören'.
+- Her piyasada tek tablo; "sadece skoru iyi olanları göster" tiki ile filtrelenir.
 - Bir satıra tıkla → sağda o hissenin detay paneli açılır ('✕ Kapat' ile kapanır).
 - Watchlist bölümünün üstünden hızlı sembol ekle/çıkar.
 """
@@ -14,9 +14,11 @@ import streamlit as st
 
 from src.analysis.radar import RadarRow
 from src.config import add_to_watchlist, load_watchlist, remove_from_watchlist
+from src.glossary import TERMS_BY_KEY
 from src.models import Market
 from src.ui.common import fmt_num, fmt_pct, page_header, radar, score_emoji
 from src.ui.detail import render_detail_panel
+from src.ui.explain import TAG_ICON
 
 page_header(
     "Radar", "📡",
@@ -29,9 +31,6 @@ _SEL = "radar_selected"
 _NONCE = "radar_nonce"
 st.session_state.setdefault(_SEL, None)
 st.session_state.setdefault(_NONCE, 0)
-
-_TAG_ICON = {"olumlu": "🟢", "temkinli": "🟡", "riskli": "🔴", "notr": "⚪"}
-
 
 def _close_detail() -> None:
     st.session_state[_SEL] = None
@@ -50,7 +49,7 @@ def _df(rows: list[RadarRow]) -> pd.DataFrame:
             "5g %": fmt_pct(r.ret_5d_pct),
             "Trend": r.trend.value,
             "RSI": fmt_num(r.rsi_14, 0),
-            "Konumlanma notu": f"{_TAG_ICON.get(r.tag, '')} {r.note}",
+            "Konumlanma notu": f"{TAG_ICON.get(r.tag, '')} {r.note}",
         }
         for r in rows
     ])
@@ -99,31 +98,48 @@ def _watchlist_editor() -> None:
                 _close_detail()
 
 
+def _explainer() -> None:
+    with st.expander("📖 Puan ve İlgi ne anlama geliyor?"):
+        puan, ilgi = TERMS_BY_KEY["Puan"], TERMS_BY_KEY["İlgi"]
+        st.markdown(f"**{puan.name}** — {puan.what}  \n*Nasıl okunur:* {puan.reading}")
+        st.markdown(f"**{ilgi.name}** — {ilgi.what}  \n*Nasıl okunur:* {ilgi.reading}")
+        st.markdown(
+            "**Bu ikisini birlikte okumak:**\n"
+            "- 🟢 **Yüksek puan + yüksek ilgi** — hem temel/teknik görünüm iyi hem de "
+            "piyasa şu an bu hisseyle ilgileniyor. Genelde yakından bakmaya değer liste budur.\n"
+            "- 🟡 **Düşük puan + yüksek ilgi** — hisse çok işlem görüyor/hareketli ama "
+            "puanı düşük: genelde spekülatif hareket, bir haber ya da söylentiden "
+            "kaynaklanıyor olabilir. Fiyat hareketi ile şirketin temelleri örtüşmüyor demektir.\n"
+            "- 🔴 **Sert düşüş + yüksek ilgi** — İlgi puanı yön gözetmez, sert düşüşler de "
+            "hacim/hareket getirir. Bu durumda 'ilgi' aslında panik satışı olabilir — "
+            "Gün %/5g % sütunlarına mutlaka bak.\n"
+            "- ⚪ **Yüksek puan + düşük ilgi** — temelleri iyi ama şu an kimse "
+            "ilgilenmiyor; sakin/gözden kaçmış olabilir."
+        )
+
+
 def _render_radar(report) -> None:
     st.caption("Bir satıra tıkla → sağda o hissenin detay paneli açılır.")
     st.warning(
         "Konumlanma notları göstergelerin ne söylediğini tarif eder — "
         "**al/sat talimatı değildir.** İlgi = hacim artışı + günlük/haftalık hareket (0–100)."
     )
+    _explainer()
     c1, c2 = st.columns([1, 3])
     if c1.button("🔄 Yeniden tara"):
         st.cache_data.clear()
         _close_detail()
     only_good = c2.checkbox(
         f"Sadece skoru iyi olanları göster (≥ {GOOD})", value=False,
-        help="İşaretliysen 'sadece ilgi gören' zayıf skorlu liste gizlenir.",
+        help="İşaretliysen skoru düşük olan satırlar tablodan gizlenir.",
     )
 
     for market, label in ((Market.BIST, "🇹🇷 BIST"), (Market.US, "🇺🇸 ABD (NYSE / NASDAQ)")):
         rows = [r for r in report.hot if r.market is market]
-        good = [r for r in rows if (r.score or 0) >= GOOD]
-        weak = [r for r in rows if (r.score or 0) < GOOD]
-        st.subheader(label)
-        st.markdown(f"**Skoru iyi + ilgi gören** ({len(good)})")
-        _table(good, f"good_{market.value}")
-        if not only_good:
-            st.markdown(f"**Sadece ilgi gören — skor < {GOOD}** ({len(weak)})")
-            _table(weak, f"weak_{market.value}")
+        if only_good:
+            rows = [r for r in rows if (r.score or 0) >= GOOD]
+        st.subheader(f"{label} ({len(rows)})")
+        _table(rows, f"tbl_{market.value}")
 
     st.divider()
     _watchlist_editor()
